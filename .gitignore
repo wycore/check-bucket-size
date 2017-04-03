@@ -1,0 +1,7 @@
+check-s3-bucket
+vendor/
+*.idea/
+*.iml
+*.ipr
+*.iws
+
