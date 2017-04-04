@@ -22,7 +22,7 @@ use existing methods like `$(date +"%Y%m%d" -d "last Sunday")`.
 
     Usage of ./check-s3-bucket:
       -bucket string
-        bucket name (default "my-bucket")
+        bucket name (required)
       -max-bytes-crit int
         max-bytes crit (default -1)
       -max-bytes-warn int
@@ -32,7 +32,7 @@ use existing methods like `$(date +"%Y%m%d" -d "last Sunday")`.
       -min-bytes-warn int
         min-bytes warn (default -1)
       -prefix string
-        prefix in the bucket
+        prefix in the bucket (optional)
 
 ## License
 

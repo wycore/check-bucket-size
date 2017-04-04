@@ -10,14 +10,29 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
+var version string
+var printVersion bool
+
 func main() {
-	flagBucket := flag.String("bucket", "my-bucket", "bucket name")
+	flagBucket := flag.String("bucket", "", "bucket name")
 	flagPrefix := flag.String("prefix", "", "prefix in the bucket")
 	flagMinBytesWarn := flag.Int("min-bytes-warn", -1, "min-bytes warn")
 	flagMaxBytesWarn := flag.Int("max-bytes-warn", -1, "max-bytes warn")
 	flagMinBytesCrit := flag.Int("min-bytes-crit", -1, "min-bytes crit")
 	flagMaxBytesCrit := flag.Int("max-bytes-crit", -1, "max-bytes crit")
+	flag.BoolVar(&printVersion, "V", false, "print version and exit")
 	flag.Parse()
+
+	if printVersion {
+		fmt.Printf("Version: %s\n", version)
+		os.Exit(int(ReturnCode(OK)))
+	}
+
+	if *flagBucket == "" {
+		flag.Usage()
+		fmt.Println("-bucket is required")
+		os.Exit(int(ReturnCode(CRITICAL)))
+	}
 
 	minBytesWarn := int64(*flagMinBytesWarn)
 	maxBytesWarn := int64(*flagMaxBytesWarn)
