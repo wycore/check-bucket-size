@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
+	"regexp"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -16,10 +19,10 @@ var printVersion bool
 func main() {
 	flagBucket := flag.String("bucket", "", "bucket name")
 	flagPrefix := flag.String("prefix", "", "prefix in the bucket")
-	flagMinBytesWarn := flag.Int("min-bytes-warn", -1, "min-bytes warn")
-	flagMaxBytesWarn := flag.Int("max-bytes-warn", -1, "max-bytes warn")
-	flagMinBytesCrit := flag.Int("min-bytes-crit", -1, "min-bytes crit")
-	flagMaxBytesCrit := flag.Int("max-bytes-crit", -1, "max-bytes crit")
+	flagMinWarn := flag.String("min-warn", "-1", "minimum size for warning, in bytes or with k/M/G suffix")
+	flagMaxWarn := flag.String("max-warn", "-1", "maximum size for warning, in bytes or with k/M/G suffix")
+	flagMinCrit := flag.String("min-crit", "-1", "minimum size for critical, in bytes or with k/M/G suffix")
+	flagMaxCrit := flag.String("max-crit", "-1", "maximum size for critical, in bytes or with k/M/G suffix")
 	flag.BoolVar(&printVersion, "V", false, "print version and exit")
 	flag.Parse()
 
@@ -29,15 +32,26 @@ func main() {
 	}
 
 	if *flagBucket == "" {
-		flag.Usage()
 		fmt.Println("-bucket is required")
-		os.Exit(int(ReturnCode(CRITICAL)))
+		execError()
 	}
 
-	minBytesWarn := int64(*flagMinBytesWarn)
-	maxBytesWarn := int64(*flagMaxBytesWarn)
-	minBytesCrit := int64(*flagMinBytesCrit)
-	maxBytesCrit := int64(*flagMaxBytesCrit)
+	minBytesWarn, err := calculate(*flagMinWarn)
+	if err != nil {
+		execError()
+	}
+	maxBytesWarn, err := calculate(*flagMaxWarn)
+	if err != nil {
+		execError()
+	}
+	minBytesCrit, err := calculate(*flagMinCrit)
+	if err != nil {
+		execError()
+	}
+	maxBytesCrit, err := calculate(*flagMaxCrit)
+	if err != nil {
+		execError()
+	}
 
 	// Initialize a session that the SDK will use to load configuration,
 	// credentials, and region from the shared config file. (~/.aws/config).
@@ -58,7 +72,7 @@ func main() {
 	size := int64(0)
 
 	pageNum := 0
-	err := svc.ListObjectsPages(params, func(page *s3.ListObjectsOutput, lastPage bool) bool {
+	err = svc.ListObjectsPages(params, func(page *s3.ListObjectsOutput, lastPage bool) bool {
 		for _, item := range page.Contents {
 			size += *item.Size
 		}
@@ -84,6 +98,48 @@ func main() {
 	}
 
 	writeCheckOutput(ReturnCode(OK), "OK", "")
+}
+
+func execError() {
+	flag.Usage()
+	os.Exit(int(ReturnCode(CRITICAL)))
+}
+
+func calculate(input string) (int64, error) {
+	if input == "" {
+		return int64(-1), nil
+	}
+	r, err := regexp.Compile("([0-9]+)([kMG]?)")
+	if err != nil {
+		return int64(-1), errors.New("Error compiling regex")
+	}
+	var result int
+	var numeric int
+	matches := r.FindStringSubmatch(input)
+
+	if len(matches[2]) > 0 {
+		numeric, err = strconv.Atoi(matches[1])
+		if result < 0 || err != nil {
+			return int64(-1), errors.New("invalid result")
+		}
+		unit := matches[2]
+		if unit == "k" {
+			result = numeric * 1024
+		} else if unit == "M" {
+			result = numeric * 1024 * 1024
+		} else if unit == "G" {
+			result = numeric * 1024 * 1024 * 1024
+		} else {
+			return int64(-1), errors.New("invalid result")
+		}
+	} else {
+		result, err = strconv.Atoi(input)
+		if result < 0 || err != nil {
+			return int64(-1), errors.New("invalid result")
+		}
+	}
+
+	return int64(result), nil
 }
 
 func writeCheckOutput(code ReturnCode, message string, additional string) {

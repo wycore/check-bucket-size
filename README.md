@@ -23,16 +23,23 @@ use existing methods like `$(date +"%Y%m%d" -d "last Sunday")`.
     Usage of ./check-s3-bucket:
       -bucket string
         bucket name (required)
-      -max-bytes-crit int
-        max-bytes crit (default -1)
-      -max-bytes-warn int
+      -max-crit 1234 / 1234k / 1234M / 1234G
+        max-crit (default -1)
+      -max-warn 1234 / 1234k / 1234M / 1234G
         max-bytes warn (default -1)
-      -min-bytes-crit int
-        min-bytes crit (default -1)
-      -min-bytes-warn int
-        min-bytes warn (default -1)
+      -min-crit 1234 / 1234k / 1234M / 1234G
+        min-crit (default -1)
+      -min-warn 1234 / 1234k / 1234M / 1234G
+        min-warn (default -1)
       -prefix string
         prefix in the bucket (optional)
+
+## How to build/test/etc
+
+```bash
+make test
+make build
+```
 
 ## License
 
