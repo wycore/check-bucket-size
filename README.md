@@ -38,6 +38,16 @@ use existing methods like `$(date +"%Y%m%d" -d "last Sunday")`.
       -prefix string
         prefix in the bucket (optional)
 
+## Authentication
+
+This check needs a `~/.aws/config` file in the following format:
+```
+[default]
+region = eu-west-1
+aws_access_key_id = ...
+aws_secret_access_key = ...
+```
+
 ## How to build/test/etc
 
 ```bash

@@ -106,7 +106,7 @@ func execError() {
 }
 
 func calculate(input string) (int64, error) {
-	if input == "" {
+	if input == "" || input == "-1" {
 		return int64(-1), nil
 	}
 	r, err := regexp.Compile("([0-9]+)([kMG]?)")
