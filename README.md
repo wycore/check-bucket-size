@@ -1,6 +1,7 @@
 # check-s3-bucket
 [![GitHub version](https://badge.fury.io/gh/wywygmbh%2Fcheck-s3-bucket.svg)](https://badge.fury.io/gh/wywygmbh%2Fcheck-s3-bucket)
 [![Build Status](https://travis-ci.org/wywygmbh/check-s3-bucket.svg?branch=master)](https://travis-ci.org/wywygmbh/check-s3-bucket)
+[![Go Report](https://goreportcard.com/badge/github.com/wywygmbh/check-s3-bucket)](https://goreportcard.com/report/github.com/wywygmbh/check-s3-bucket)
 
 Check contents of an S3 bucket or parts of it (minimum size and maximum size).
 
