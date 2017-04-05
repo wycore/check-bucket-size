@@ -12,9 +12,13 @@ This was originally created to check if a cassandra backup was successfully uplo
 
 ## Example
 
-    # check if s3://my-bucket/prod/my_cluster/20170402HHMMSS/ contains >= 100GB of data
-    $ check-s3-bucket -bucket my-bucket -prefix prod/my_cluster/20170402 -min-bytes-crit 107374182400 -min-bytes-warn 128849018880
-    
+```
+# check if s3://my-bucket/prod/my_cluster/20170402HHMMSS/ contains >= 100GB of data
+
+$ ./check-s3-bucket -bucket my-bucket -prefix prod/my_cluster/20170402 \
+  -min-crit 100G -min-warn 120G
+```
+
 The `prefix` parameter is deliberately dumb, if you need to use some date arithmetic, you can
 use existing methods like `$(date +"%Y%m%d" -d "last Sunday")`.
  
