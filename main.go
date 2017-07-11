@@ -20,9 +20,13 @@ import (
 var version string
 var printVersion bool
 
+// Amazon S3 Provider
 const PROVIDER_S3 = "s3"
+// Google Cloud Storage Provider
 const PROVIDER_GS = "gs"
+// Protocol for the bucket URLs - Amazon S3
 const PROTO_S3 = "s3"
+// Protocol for the bucket URLs - Google Cloud Storage
 const PROTO_GS = "gs"
 
 func main() {
