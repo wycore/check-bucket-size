@@ -7,7 +7,7 @@ deploy:
   provider: releases
   api_key:
     secure: "vBVH30ugG3lFcTPPT8ZOlCnJg83Vcy5dE1J5GNhjdd5MifGi1UMKkv6KM/fKg6E6EFSUFANBv0V2Uh2+l/fC++ex7Sv1tGZ8CjdwM6jSYg5yEUfhSF4SLjBPTcT8P/KxfTE1LF1w+VTnTRbiu0t1X+h4muNuZBqmzBEES8h0hidNGX/kWsKEpz2Uc+uhaX5JE3GJj+0CUrQy5x50L6TpiqH2tX48CzaNQDjHWnMWgamw4hNJ0gwHkrwS1ugULkz5MaBRz1ZGuWUVAyXXgOYLZHSpLp8IAHGuH5K6CbGZtFaLbG+z+BdGi2WZeON+1kKyW2aVbnLt5NTIwD8cznpan98N2qtcTdrZnzU3Tt3BiRI3UeJ9D+nNgsiKXeEe0fuXuHyeJ+DwI0oHimgiKPVwirRLux+4KeF1fU1XGWeAhb5NzCDUTGggy8pV2+gAxcpSXI0P8viniS4XBaj5xh5QTEUpO+1MHZnQJeGsLHkiTNIJ0W5uowsvIY05eVcENWrISQNMyRH+TR2tWlu2flxpNtRN4A/6Eh+t24H5fQF59bS+cIeyCln/5WrWghCANhVbRVq3LXvoRsJWTwkxy7F+F0U6Yv3ijIB8ZNLtQZzSitHaQrXfVbAisy6zhnOkgJijUyjQOKgGBiv5frigYqPaM+ptWQI42zaqrbn4AnFni4E="
-  file: check-s3-bucket
+  file: check-bucket-size
   on:
     tags: true
 notifications:

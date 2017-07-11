@@ -1,7 +1,7 @@
-# check-s3-bucket
-[![GitHub version](https://badge.fury.io/gh/wywygmbh%2Fcheck-s3-bucket.svg)](https://badge.fury.io/gh/wywygmbh%2Fcheck-s3-bucket)
-[![Build Status](https://travis-ci.org/wywygmbh/check-s3-bucket.svg?branch=master)](https://travis-ci.org/wywygmbh/check-s3-bucket)
-[![Go Report](https://goreportcard.com/badge/github.com/wywygmbh/check-s3-bucket)](https://goreportcard.com/report/github.com/wywygmbh/check-s3-bucket)
+# check-bucket-size
+[![GitHub version](https://badge.fury.io/gh/wywygmbh%2Fcheck-bucket-size.svg)](https://badge.fury.io/gh/wywygmbh%2Fcheck-bucket-size)
+[![Build Status](https://travis-ci.org/wywygmbh/check-bucket-size.svg?branch=master)](https://travis-ci.org/wywygmbh/check-bucket-size)
+[![Go Report](https://goreportcard.com/badge/github.com/wywygmbh/check-bucket-size)](https://goreportcard.com/report/github.com/wywygmbh/check-bucket-size)
 
 Check contents of an S3 (or Google Cloud Storage) bucket or parts of it (minimum size and maximum size).
 
@@ -16,12 +16,12 @@ This was originally created to check if a cassandra backup was successfully uplo
 ```
 # check if s3://my-bucket/prod/my_cluster/20170402HHMMSS/ contains >= 100GB of data
 
-$ ./check-s3-bucket -provider s3 -bucket my-bucket -prefix prod/my_cluster/20170402 \
+$ ./check-bucket-size -provider s3 -bucket my-bucket -prefix prod/my_cluster/20170402 \
   -min-crit 100G -min-warn 120G
 
 # check if gs://my-bucket/prod/my_cluster contains >= 100GB of data
 
-$ ./check-s3-bucket -provider gs -bucket my-bucket -prefix prod/my_cluster \
+$ ./check-bucket-size -provider gs -bucket my-bucket -prefix prod/my_cluster \
   -min-crit 100G -min-warn 120G
 ```
 
@@ -30,7 +30,7 @@ use existing methods like `$(date +"%Y%m%d" -d "last Sunday")`.
  
 ## Usage
 
-    Usage of ./check-s3-bucket:
+    Usage of ./check-bucket-size:
       -bucket string
         bucket name (required)
       -max-crit 1234 / 1234k / 1234M / 1234G
@@ -65,7 +65,7 @@ This check needs a "[Google Application Default Credentials](https://developers.
 
 ```
 export GOOGLE_APPLICATION_CREDENTIALS=/path/to/something.json
-./check-s3-bucket ...
+./check-bucket-size ...
 ```
 
 ## How to build/test/etc
