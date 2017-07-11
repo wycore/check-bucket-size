@@ -1,24 +1,32 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 
+	"cloud.google.com/go/storage"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"google.golang.org/api/iterator"
 )
 
 var version string
 var printVersion bool
 
+const PROVIDER_S3 = "s3"
+const PROVIDER_GCS = "storage"
+
 func main() {
 	flagBucket := flag.String("bucket", "", "bucket name")
 	flagPrefix := flag.String("prefix", "", "prefix in the bucket")
+	flagProvider := flag.String("provider", PROVIDER_S3, "provider: 's3' or 'storage'")
 	flagMinWarn := flag.String("min-warn", "-1", "minimum size for warning, in bytes or with k/M/G suffix")
 	flagMaxWarn := flag.String("max-warn", "-1", "maximum size for warning, in bytes or with k/M/G suffix")
 	flagMinCrit := flag.String("min-crit", "-1", "minimum size for critical, in bytes or with k/M/G suffix")
@@ -33,6 +41,11 @@ func main() {
 
 	if *flagBucket == "" {
 		fmt.Println("-bucket is required")
+		execError()
+	}
+
+	if *flagProvider != PROVIDER_S3 && *flagProvider != PROVIDER_GCS {
+		fmt.Println("-provider s3|storage is required")
 		execError()
 	}
 
@@ -53,33 +66,64 @@ func main() {
 		execError()
 	}
 
-	// Initialize a session that the SDK will use to load configuration,
-	// credentials, and region from the shared config file. (~/.aws/config).
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
-
-	// Create S3 service client
-	svc := s3.New(sess, &aws.Config{
-		Region: aws.String("eu-west-1"),
-	})
-
-	params := &s3.ListObjectsInput{
-		Bucket: aws.String(*flagBucket),
-		Prefix: aws.String(*flagPrefix),
-	}
-
 	size := int64(0)
 
-	pageNum := 0
-	err = svc.ListObjectsPages(params, func(page *s3.ListObjectsOutput, lastPage bool) bool {
-		for _, item := range page.Contents {
-			size += *item.Size
+	if *flagProvider == PROVIDER_S3 {
+		// Initialize a session that the SDK will use to load configuration,
+		// credentials, and region from the shared config file. (~/.aws/config).
+		sess := session.Must(session.NewSessionWithOptions(session.Options{
+			SharedConfigState: session.SharedConfigEnable,
+		}))
+
+		// Create S3 service client
+		svc := s3.New(sess, &aws.Config{
+			Region: aws.String("eu-west-1"),
+		})
+
+		params := &s3.ListObjectsInput{
+			Bucket: aws.String(*flagBucket),
+			Prefix: aws.String(*flagPrefix),
 		}
-		pageNum++
-		// fmt.Println(len(page.Contents))
-		return true
-	})
+
+		pageNum := 0
+		err = svc.ListObjectsPages(params, func(page *s3.ListObjectsOutput, lastPage bool) bool {
+			for _, item := range page.Contents {
+				size += *item.Size
+			}
+			pageNum++
+			// fmt.Println(len(page.Contents))
+			return true
+		})
+	} else if *flagProvider == PROVIDER_GCS {
+		ctx := context.Background()
+		client, err := storage.NewClient(ctx)
+		if err != nil {
+			writeCheckOutput(ReturnCode(CRITICAL), fmt.Sprintf("Error initializing: %s", err), "")
+		}
+		bkt := client.Bucket(*flagBucket)
+		it := bkt.Objects(ctx, nil)
+
+		for {
+			objAttrs, err := it.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				break
+			}
+			tmpSize := objAttrs.Size
+			if strings.HasPrefix(objAttrs.Name, *flagPrefix) {
+				//fmt.Printf("Using %s %d\n", objAttrs.Name, tmpSize)
+				size += tmpSize
+			} else {
+				//fmt.Printf("Skipping %s\n", objAttrs.Name)
+			}
+		}
+		//fmt.Println(size)
+	} else {
+		execError()
+	}
+
 	if err != nil {
 		writeCheckOutput(ReturnCode(UNKNOWN), fmt.Sprintf("Unable to list contents of bucket s3://%s", *flagBucket), "")
 	}

@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/wywygmbh/check-s3-bucket.svg?branch=master)](https://travis-ci.org/wywygmbh/check-s3-bucket)
 [![Go Report](https://goreportcard.com/badge/github.com/wywygmbh/check-s3-bucket)](https://goreportcard.com/report/github.com/wywygmbh/check-s3-bucket)
 
-Check contents of an S3 bucket or parts of it (minimum size and maximum size).
+Check contents of an S3 (or Google Cloud Storage) bucket or parts of it (minimum size and maximum size).
 
 Compatible with Icinga, Nagios, Sensu, ... It uses the common exit codes.
 
@@ -17,6 +17,11 @@ This was originally created to check if a cassandra backup was successfully uplo
 # check if s3://my-bucket/prod/my_cluster/20170402HHMMSS/ contains >= 100GB of data
 
 $ ./check-s3-bucket -bucket my-bucket -prefix prod/my_cluster/20170402 \
+  -min-crit 100G -min-warn 120G
+
+# check if gs://my-bucket/prod/my_cluster contains >= 100GB of data
+
+$ ./check-s3-bucket -provider storage -bucket my-bucket -prefix prod/my_cluster \
   -min-crit 100G -min-warn 120G
 ```
 
@@ -41,12 +46,23 @@ use existing methods like `$(date +"%Y%m%d" -d "last Sunday")`.
 
 ## Authentication
 
+### Amazon S3
+
 This check needs a `~/.aws/config` file in the following format:
 ```
 [default]
 region = eu-west-1
 aws_access_key_id = ...
 aws_secret_access_key = ...
+```
+
+### Google Cloud Storage
+
+This check needs a "[Google Application Default Credentials](https://developers.google.com/identity/protocols/application-default-credentials)" JSON file.
+
+```
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/something.json
+./check-s3-bucket ...
 ```
 
 ## How to build/test/etc
