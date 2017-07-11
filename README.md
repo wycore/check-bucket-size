@@ -16,12 +16,12 @@ This was originally created to check if a cassandra backup was successfully uplo
 ```
 # check if s3://my-bucket/prod/my_cluster/20170402HHMMSS/ contains >= 100GB of data
 
-$ ./check-s3-bucket -bucket my-bucket -prefix prod/my_cluster/20170402 \
+$ ./check-s3-bucket -provider s3 -bucket my-bucket -prefix prod/my_cluster/20170402 \
   -min-crit 100G -min-warn 120G
 
 # check if gs://my-bucket/prod/my_cluster contains >= 100GB of data
 
-$ ./check-s3-bucket -provider storage -bucket my-bucket -prefix prod/my_cluster \
+$ ./check-s3-bucket -provider gs -bucket my-bucket -prefix prod/my_cluster \
   -min-crit 100G -min-warn 120G
 ```
 
@@ -43,6 +43,9 @@ use existing methods like `$(date +"%Y%m%d" -d "last Sunday")`.
         min-warn (default -1)
       -prefix string
         prefix in the bucket (optional)
+      -provider string
+        's3' for Amazon S3 or 'gs' for Google Cloud Storage
+
 
 ## Authentication
 

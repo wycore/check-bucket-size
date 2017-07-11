@@ -21,12 +21,12 @@ var version string
 var printVersion bool
 
 const PROVIDER_S3 = "s3"
-const PROVIDER_GCS = "storage"
+const PROVIDER_GS = "gs"
 
 func main() {
 	flagBucket := flag.String("bucket", "", "bucket name")
 	flagPrefix := flag.String("prefix", "", "prefix in the bucket")
-	flagProvider := flag.String("provider", PROVIDER_S3, "provider: 's3' or 'storage'")
+	flagProvider := flag.String("provider", "", "'s3' for Amazon S3 or 'gs' for Google Cloud Storage")
 	flagMinWarn := flag.String("min-warn", "-1", "minimum size for warning, in bytes or with k/M/G suffix")
 	flagMaxWarn := flag.String("max-warn", "-1", "maximum size for warning, in bytes or with k/M/G suffix")
 	flagMinCrit := flag.String("min-crit", "-1", "minimum size for critical, in bytes or with k/M/G suffix")
@@ -44,8 +44,8 @@ func main() {
 		execError()
 	}
 
-	if *flagProvider != PROVIDER_S3 && *flagProvider != PROVIDER_GCS {
-		fmt.Println("-provider s3|storage is required")
+	if *flagProvider != PROVIDER_S3 && *flagProvider != PROVIDER_GS {
+		fmt.Println("-provider is required")
 		execError()
 	}
 
@@ -91,10 +91,9 @@ func main() {
 				size += *item.Size
 			}
 			pageNum++
-			// fmt.Println(len(page.Contents))
 			return true
 		})
-	} else if *flagProvider == PROVIDER_GCS {
+	} else if *flagProvider == PROVIDER_GS {
 		ctx := context.Background()
 		client, err := storage.NewClient(ctx)
 		if err != nil {
