@@ -22,6 +22,8 @@ var printVersion bool
 
 const PROVIDER_S3 = "s3"
 const PROVIDER_GS = "gs"
+const PROTO_S3 = "s3"
+const PROTO_GS = "gs"
 
 func main() {
 	flagBucket := flag.String("bucket", "", "bucket name")
@@ -31,6 +33,7 @@ func main() {
 	flagMaxWarn := flag.String("max-warn", "-1", "maximum size for warning, in bytes or with k/M/G suffix")
 	flagMinCrit := flag.String("min-crit", "-1", "minimum size for critical, in bytes or with k/M/G suffix")
 	flagMaxCrit := flag.String("max-crit", "-1", "maximum size for critical, in bytes or with k/M/G suffix")
+	flagDebug := flag.Bool("debug", false, "Show debug output")
 	flag.BoolVar(&printVersion, "V", false, "print version and exit")
 	flag.Parse()
 
@@ -67,8 +70,10 @@ func main() {
 	}
 
 	size := int64(0)
+	protocol := ""
 
 	if *flagProvider == PROVIDER_S3 {
+		protocol = PROTO_S3
 		// Initialize a session that the SDK will use to load configuration,
 		// credentials, and region from the shared config file. (~/.aws/config).
 		sess := session.Must(session.NewSessionWithOptions(session.Options{
@@ -94,6 +99,7 @@ func main() {
 			return true
 		})
 	} else if *flagProvider == PROVIDER_GS {
+		protocol = PROTO_GS
 		ctx := context.Background()
 		client, err := storage.NewClient(ctx)
 		if err != nil {
@@ -105,6 +111,7 @@ func main() {
 		for {
 			objAttrs, err := it.Next()
 			if err == iterator.Done {
+				err = nil
 				break
 			}
 			if err != nil {
@@ -112,32 +119,38 @@ func main() {
 			}
 			tmpSize := objAttrs.Size
 			if strings.HasPrefix(objAttrs.Name, *flagPrefix) {
-				//fmt.Printf("Using %s %d\n", objAttrs.Name, tmpSize)
+				if *flagDebug {
+					fmt.Printf("Using %s %d\n", objAttrs.Name, tmpSize)
+				}
 				size += tmpSize
 			} else {
-				//fmt.Printf("Skipping %s\n", objAttrs.Name)
+				if *flagDebug {
+					fmt.Printf("Skipping %s\n", objAttrs.Name)
+				}
 			}
 		}
-		//fmt.Println(size)
+		if *flagDebug {
+			fmt.Printf("Total size in byte: %d\n", size)
+		}
 	} else {
 		execError()
 	}
 
 	if err != nil {
-		writeCheckOutput(ReturnCode(UNKNOWN), fmt.Sprintf("Unable to list contents of bucket s3://%s", *flagBucket), "")
+		writeCheckOutput(ReturnCode(UNKNOWN), fmt.Sprintf("Unable to list contents of bucket %s://%s", protocol, *flagBucket), "")
 	}
 
 	if minBytesWarn > int64(-1) && size < minBytesWarn {
-		writeCheckOutput(ReturnCode(WARNING), fmt.Sprintf("Contents too small: s3://%s/%s", *flagBucket, *flagPrefix), "")
+		writeCheckOutput(ReturnCode(WARNING), fmt.Sprintf("Contents too small: %s://%s/%s", protocol, *flagBucket, *flagPrefix), "")
 	}
 	if maxBytesWarn > int64(-1) && size > maxBytesWarn {
-		writeCheckOutput(ReturnCode(WARNING), fmt.Sprintf("Contents too big: s3://%s/%s", *flagBucket, *flagPrefix), "")
+		writeCheckOutput(ReturnCode(WARNING), fmt.Sprintf("Contents too big: %s://%s/%s", protocol, *flagBucket, *flagPrefix), "")
 	}
 	if minBytesCrit > int64(-1) && size < minBytesCrit {
-		writeCheckOutput(ReturnCode(CRITICAL), fmt.Sprintf("Contents too small: s3://%s/%s", *flagBucket, *flagPrefix), "")
+		writeCheckOutput(ReturnCode(CRITICAL), fmt.Sprintf("Contents too small: %s://%s/%s", protocol, *flagBucket, *flagPrefix), "")
 	}
 	if maxBytesCrit > int64(-1) && size > maxBytesCrit {
-		writeCheckOutput(ReturnCode(CRITICAL), fmt.Sprintf("Contents too big: s3://%s/%s", *flagBucket, *flagPrefix), "")
+		writeCheckOutput(ReturnCode(CRITICAL), fmt.Sprintf("Contents too big: %s://%s/%s", protocol, *flagBucket, *flagPrefix), "")
 	}
 
 	writeCheckOutput(ReturnCode(OK), "OK", "")
